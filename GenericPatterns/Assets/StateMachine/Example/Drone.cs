@@ -1,4 +1,4 @@
-﻿using KristianPiacenti.SimpleStateMachine;
+﻿using Piacenti.SimpleStateMachine;
 using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Drone : MonoBehaviour {

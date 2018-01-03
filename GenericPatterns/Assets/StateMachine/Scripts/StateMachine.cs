@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿/*TUTORIAL
+    https://www.youtube.com/watch?v=PaLD1t-kIwM
+*/
 
-namespace KristianPiacenti.SimpleStateMachine
+namespace Piacenti.SimpleStateMachine
 {
     public class StateMachine<T> where T : class
     {
