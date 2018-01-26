@@ -1,69 +1,93 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
-namespace Piacenti.EditorTools
-{
-    public class ToolWindow : EditorWindow
+using Piacenti.EditorTools;
+public class ToolWindow : EditorWindow
+  {
+    private List<WindowSection> sections;
+    private WindowSection buttonsSection;
+    private WindowSection iconSection;
+    private WindowSection bodySection;
+    private Vector2 scrollPosition;
+
+    [MenuItem("EditorTools/ToolWindow")]
+    private static void InitWindow() {
+        EditorWindow window = GetWindow<ToolWindow>();
+        window.titleContent = new GUIContent("ToolWindow");
+        window.minSize=new Vector2(600, 300);
+        window.Show();
+    }
+
+
+    private void OnEnable()
     {
+        sections = new List<WindowSection>();
+        iconSection = new WindowSection(new Rect(0, 0, 200, 50), new Color(1, 1, 1 ));
+        buttonsSection = new WindowSection(new Rect(0, 50, 200, position.height), new Color(0.1568f,0.2078f,0.5764f));
+        bodySection = new WindowSection(new Rect(200, 0, position.width, position.height), new Color(0.1882f,0.2470f,0.6235f));
+        sections.Add(buttonsSection);
+        sections.Add(bodySection);
+        sections.Add(iconSection);
+    }
+    private void OnGUI()
+    {
+        DrawSections();
+        DrawIconSection();
+        DrawButtonsSection();
+        DrawBodySection();
 
-        private List<WindowSection> sections;
-
-        [MenuItem("EditorTools/ToolWindow")]
-        private static void InitWindow() {
-            EditorWindow window = GetWindow<ToolWindow>();
-            window.titleContent = new GUIContent("ToolWindow");
-            window.minSize=new Vector2(600, 300);
-            window.Show();
-        }
-
-
-        private void OnEnable()
+    }
+    private void DrawBodySection() {
+        GUILayout.BeginArea(bodySection.GetRect());
         {
-            sections = new List<WindowSection>();
-            sections.Add(new WindowSection(new Rect(0, 0,100, position.width),Color.grey));
-            sections.Add(new WindowSection(new Rect(100, 0, position.width, Screen.width), Color.green));
-        }
-        private void OnGUI()
-        {
-            DrawSections();    
-        }
-        private void DrawSections() {
-            foreach (WindowSection section in sections)
+            GUILayout.Toolbar(0, new string[6] { "String 0", "String 1", "String 0", "String 1" , "String 0", "String 1" },GUILayout.Width(bodySection.GetRect().width-buttonsSection.GetRect().width), GUILayout.Height(50));
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar,GUILayout.ExpandWidth(true));
             {
-                GUI.DrawTexture(section.GetRect(), section.GetTexture());
+                GUILayout.Button("Hello", EditorStyles.toolbarButton,GUILayout.Width(50));
             }
+            EditorGUILayout.EndHorizontal();
         }
-
+        GUILayout.EndArea();
     }
-    public class WindowSection {
 
-        private Rect _rect;
-        private Texture2D _texture2D;
-
-        public WindowSection(Rect rect, Color color) {
-            _rect = rect;
-
-            _texture2D = new Texture2D(1, 1);
-            _texture2D.SetPixel(0, 0, color);
-            _texture2D.Apply();
-        }
-        public WindowSection(Rect rect, Texture2D texture)
+    private void DrawIconSection()
+    {
+        GUILayout.BeginArea(iconSection.GetRect());
         {
-            _rect = rect;
-            _texture2D = texture;
-            
+            EditorGUILayout.LabelField("Editor Window", GUILayout.Width(iconSection.GetRect().width),GUILayout.Height(iconSection.GetRect().height));
         }
-
-        public Rect GetRect() {
-            return _rect;
-        }
-        public Texture2D GetTexture() {
-            return _texture2D;
-        }
-        public Color GetTextureColor(int x,int y) {
-            return _texture2D.GetPixel(x, y);
-        }
-
+        GUILayout.EndArea();
     }
-    
+    private void DrawButtonsSection() {
+        GUILayout.BeginArea(buttonsSection.GetRect());
+        {
+            EditorGUILayout.BeginVertical();
+            {
+                //GUILayout.Button("Button");
+                scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition,GUILayout.Height(buttonsSection.GetRect().height));
+
+                for (int i = 0; i < 5; i++)
+                {
+                    GUILayout.Space(5);
+                    GUILayout.Button("Button" + i, GUILayout.Height(70), GUILayout.Width(buttonsSection.GetRect().width-10));
+                }
+                EditorGUILayout.EndScrollView();
+
+            }
+            EditorGUILayout.EndVertical();
+        }
+        GUILayout.EndArea();
+    }
+    private void DrawSections() {
+        buttonsSection.SetRect(200, position.height);
+        bodySection.SetRect(position.width, position.height);
+        foreach (var item in sections)
+        {
+            GUI.DrawTexture(item.GetRect(), item.GetTexture());
+        }
+    }
+
 }
+
+    
+
