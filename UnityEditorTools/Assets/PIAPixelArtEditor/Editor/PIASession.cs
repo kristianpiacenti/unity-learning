@@ -4,6 +4,17 @@ using UnityEngine;
 
 public class PIASession {
     private PIAImageData _imageData;
+    private static PIASession _instance;
+    public static PIASession Instance {
+        get{
+            if (_instance == null)
+            {
+                _instance = new PIASession();
+            }
+            return _instance;
+        }
+    }
+
 
     public PIAImageData ImageData { get { return _imageData; } set { _imageData = value; } }
     private bool isNew {
@@ -32,7 +43,11 @@ public class PIASession {
     }
     public Texture2D LoadImageFromFile()
     {
-        string path = EditorUtility.OpenFilePanelWithFilters("Select Texture", "", new string[] { "png", "png" });
+
+        string path = EditorUtility.OpenFilePanelWithFilters("Select Texture", "", new string[]{ "PNG", "png","JPG","jpg"});
+
+        //string path = EditorUtility.OpenFilePanel("Select Texture", "", "Image Files;*.jpg;*.png");
+        
         if (string.IsNullOrEmpty(path))
             return null;
 
@@ -45,7 +60,7 @@ public class PIASession {
     }
 
     private void OpenAsset(ref PIAImageData output) {
-        string path = EditorUtility.OpenFilePanelWithFilters("Select Asset", "Assets/", new string[] { "asset", "asset" });
+        string path = EditorUtility.OpenFilePanelWithFilters("Select Asset", "Assets/", new string[] { "ASSET", "asset" });
         if (string.IsNullOrEmpty(path))
             return;
         output = AssetDatabase.LoadAssetAtPath<PIAImageData>(FileUtil.GetProjectRelativePath(path));
@@ -54,13 +69,24 @@ public class PIASession {
     
     public void ExportImage(Texture2D tex)
     {
-
+        byte[] encodedBytes;
         string path = EditorUtility.SaveFilePanel("Save Image", "", ProjectName, "png");
         if (string.IsNullOrEmpty(path))
             return;
-        byte[] bytes = tex.EncodeToPNG();
-        File.WriteAllBytes(path, bytes);
-        
+        string extension = Path.GetExtension(path);
+        switch (extension) {
+            case ".png":
+                encodedBytes = tex.EncodeToPNG();
+                break;
+            case ".jpg":
+                encodedBytes = tex.EncodeToJPG();
+                break;
+            default:
+                encodedBytes = tex.EncodeToPNG();
+                break;
+        }
+        File.WriteAllBytes(path, encodedBytes);
+        AssetDatabase.Refresh();
 
     }
     public void SaveAsset() {

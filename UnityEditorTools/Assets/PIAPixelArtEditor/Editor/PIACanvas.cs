@@ -42,27 +42,46 @@ public class PIACanvas {
         int cellWidth = (int)(grid.width / tex.width);
         int cellHeight = (int)(grid.height / tex.height);
        
-        float relX = ((worldPosition.x - grid.x) / cellWidth) + 1;
-        float relY = ((worldPosition.y - grid.y) / cellHeight) + 1;
+        float relX = (worldPosition.x - grid.x) / cellWidth;
+        float relY = (worldPosition.y - grid.y) / cellHeight;
         Vector2 gridPosition = new Vector2((int)relX, (int)relY);
 
         return gridPosition;
     }
-    public static Vector2 WorldPositionToGridPixel(Vector2 worldPosition, Rect grid, Vector2 gridParent, Texture tex)
+    public static Vector2Int WorldPositionToGridPixel(Vector2 worldPosition, Rect grid, Vector2 gridParent, Texture tex)
     {
         float cellWidth = (grid.width / tex.width);
         float cellHeight = (grid.height / tex.height);
-        Vector2 localPosition = WorldToLocalPosition(worldPosition, gridParent);
-        float relX = ((localPosition.x - grid.x) / cellWidth) + 1;
-        float relY = ((localPosition.y - grid.y) / cellHeight) + 1;
-        Vector2 gridPixelPosition = new Vector2((int)relX, (int)relY);
+        Vector2 localPosition = ParentToLocalPosition(worldPosition, gridParent);
+        float relX = (localPosition.x - grid.x) / cellWidth;
+        float relY = (localPosition.y - grid.y) / cellHeight;
+        Vector2Int gridPixelPosition = new Vector2Int((int)relX, (int)relY);
         return gridPixelPosition;
     }
-    public static Vector2 WorldToLocalPosition(Vector2 worldPosition, Vector2 childPosition) {
-        return worldPosition - childPosition;
-    }
-    public static Vector2 LocalToWorldPosition(Vector2 worldPosition, Vector2 childPosition)
+    public static Vector2Int GridPixelToWorldPosition(Vector2Int gridPixel, Rect grid, Texture tex)
     {
-        return worldPosition + childPosition;
+        float cellWidth = (grid.width / tex.width);
+        float cellHeight = (grid.height / tex.height);
+        float relX = (gridPixel.x * cellWidth) + grid.x;
+        float relY = (gridPixel.y * cellWidth) + grid.y;
+        Vector2Int worldPosition = new Vector2Int((int)relX, (int)relY);
+        return worldPosition;
+    }
+    public static Vector2Int GridPixelToWorldPosition(Vector2Int gridPixel, Rect grid, Vector2 gridParent, Texture tex) {
+        float cellWidth = (grid.width / tex.width);
+        float cellHeight = (grid.height / tex.height);
+        float relX = (gridPixel.x * cellWidth) + grid.x;
+        float relY = (gridPixel.y * cellWidth) + grid.y;
+        Vector2Int worldPosition = new Vector2Int((int)relX, (int)relY);
+        Vector2 parentPosition = LocalToParentPosition(worldPosition, gridParent);
+
+        return new Vector2Int((int)parentPosition.x,(int)parentPosition.y);
+    }
+    public static Vector2 ParentToLocalPosition(Vector2 parentPosition, Vector2 childPosition) {
+        return parentPosition - childPosition;
+    }
+    public static Vector2 LocalToParentPosition(Vector2 parentPosition, Vector2 childPosition)
+    {
+        return parentPosition + childPosition;
     }
 }
