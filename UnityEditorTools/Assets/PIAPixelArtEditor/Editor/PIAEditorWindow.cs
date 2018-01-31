@@ -358,7 +358,7 @@ public class PIAEditorWindow : EditorWindow {
         }
         private void LoadNewAsset() {
             PIASession.Instance.LoadNewAsset();
-            PIASession.Instance.ImageData.Canvas.GetCurrentLayer().Texture.Resize(width,height);
+            PIASession.Instance.ImageData.Canvas.GetCurrentLayer().Image.Texture.Resize(width,height);
             PIAEditorWindow.window.Repaint();
             window.Close();
         }
