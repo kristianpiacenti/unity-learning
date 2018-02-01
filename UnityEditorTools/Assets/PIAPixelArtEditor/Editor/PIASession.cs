@@ -49,14 +49,13 @@ public class PIASession {
     public Texture2D LoadAsset()
     {
         OpenAsset(ref _imageData);
-        Debug.Log(ImageData.Canvas);
-        if (ImageData.Canvas == null)
-            ImageData.Init();
-        return ImageData.Canvas.GetFinalImage();
+        if (ImageData.CurrentFrame == null)
+            ImageData.Init(16,16);
+        return ImageData.CurrentFrame.GetCurrentImage().Texture;
     }
     public PIASession()
     {
-        LoadNewAsset();
+        LoadNewAsset(16,16);
     }
     public Texture2D LoadImageFromFile()
     {
@@ -72,8 +71,10 @@ public class PIASession {
         texture.filterMode = FilterMode.Point;
         byte[] fileData = File.ReadAllBytes(path);
         texture.LoadImage(fileData);
-        ImageData.Canvas.GetCurrentLayer().Image.Texture = texture;
-        return ImageData.Canvas.GetFinalImage();
+        //ImageData.Width = texture.width;
+        //ImageData.Height = texture.height;
+        ImageData.CurrentFrame.GetCurrentImage().Texture = texture;
+        return ImageData.CurrentFrame.GetCurrentImage().Texture;
     }
 
     private void OpenAsset(ref PIAImageData output)
@@ -119,15 +120,15 @@ public class PIASession {
                 return;
             AssetDatabase.CreateAsset(ImageData, path);
         }
-        ImageData.Canvas.GetCurrentLayer().Image.Save();
+        ImageData.CurrentFrame.GetCurrentImage().Save();
         AssetDatabase.Refresh();
         EditorUtility.SetDirty(_imageData);
 
     }
-    public void LoadNewAsset()
+    public void LoadNewAsset(int width, int height)
     {
         ImageData = ScriptableObject.CreateInstance<PIAImageData>();
-        ImageData.Init();
+        ImageData.Init(width,height);
     }
 
     #endregion

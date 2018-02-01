@@ -34,8 +34,9 @@ public class PIADrawer{
     {
         if (pixelCoordinate.x < 0 || pixelCoordinate.y < 0)
             return;
-        PIACanvasLayer canvasLayer = PIASession.Instance.ImageData.Canvas.GetCurrentLayer();
-
+        PIAFrame frame = PIASession.Instance.ImageData.CurrentFrame;
+        int width = PIASession.Instance.ImageData.Width;
+        int height = PIASession.Instance.ImageData.Height;
         switch (DrawerType)
         {
             case PIADrawerType.Paint:
@@ -43,17 +44,17 @@ public class PIADrawer{
                 {
                     if (e.button == 0)
                     {
-                        canvasLayer.Image.Paint(pixelCoordinate.x, canvasLayer.Image.Texture.height - pixelCoordinate.y - 1, FirstColor);
+                        frame.GetCurrentImage().Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, FirstColor);
                     }
                     if (e.button == 1)
-                        canvasLayer.Image.Paint(pixelCoordinate.x, canvasLayer.Image.Texture.height - pixelCoordinate.y - 1, SecondColor);
+                        frame.GetCurrentImage().Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, SecondColor);
                 }
 
                 break;
             case PIADrawerType.Erase:
                 if (e.type == EventType.MouseDown || e.type == EventType.MouseDrag)
                 {
-                    canvasLayer.Image.Paint(pixelCoordinate.x, canvasLayer.Image.Texture.height - pixelCoordinate.y - 1, Color.clear);
+                    frame.GetCurrentImage().Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, Color.clear);
                 }
                 break;
         }

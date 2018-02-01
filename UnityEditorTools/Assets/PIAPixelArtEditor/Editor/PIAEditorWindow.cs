@@ -2,10 +2,14 @@
 using UnityEngine;
 using Piacenti.EditorTools;
 using System.Collections.Generic;
-using System.IO;
+
+
 public class PIAEditorWindow : EditorWindow {
     #region Fields
+    
+    private static PIAEditorWindow _instance;
 
+   
     public static PIAEditorWindow window;
 
     const float INIT_SCALE_MULTIPLIER = 0.9f;
@@ -22,14 +26,31 @@ public class PIAEditorWindow : EditorWindow {
     PIADrawer drawer;
 
     GUISkin skin;
-
+    PIAGrid grid;
 
     float scaleMultiplier = INIT_SCALE_MULTIPLIER;
     float imageOffsetX = 0;
     float imageOffsetY = 0;
-    Rect imageRect;
-    Vector2Int pixelCoordinate;
+    
+    Vector2Int mouseCellCoordinate;
+
+    int currentFrameInPreview = 0;
+    float timer = 0;
+    float framePerSeconds = 1;
     #endregion
+
+    #region Properties
+
+    public static PIAEditorWindow Instance
+    {
+        get
+        {
+            return _instance;
+        }
+    }
+    public Rect BodyRect { get { return body.GetRect(); } }
+    #endregion
+
 
     #region Methods
     [MenuItem("EditorTools/PIAPixelArtEditor")]
@@ -45,15 +66,20 @@ public class PIAEditorWindow : EditorWindow {
 
     private void OnEnable()
     {
+        if(_instance==null)
+            _instance = this;
+
         //DRAWER
         drawer = new PIADrawer();
-
+        grid = new PIAGrid();
+        
         //INIT INPUT AREAS 
         bodyInputArea = new PIAInputArea();
         imageInputArea = new PIAInputArea();
         bodyInputArea.OnGUIUpdate += ChangeImageScaleMultiplier;
-        bodyInputArea.OnGUIUpdate += (e) => drawer.OnGUIExecute(e,pixelCoordinate);
+        bodyInputArea.OnGUIUpdate += (e) => drawer.OnGUIExecute(e,mouseCellCoordinate);
         bodyInputArea.OnGUIUpdate += ChangeImageOffset;
+        
         //INIT WINDOW SECTIONS
         InitializeSections();
 
@@ -61,15 +87,21 @@ public class PIAEditorWindow : EditorWindow {
         skin = Resources.Load<GUISkin>("Skins/PIAPixelArtEditorSkin");
 
     }
-
+    private void Update()
+    {
+        timer+=Time.deltaTime*framePerSeconds;
+        if (timer >= 1) {
+            timer = 0;
+            currentFrameInPreview = (currentFrameInPreview + 1) % PIASession.Instance.ImageData.Frames.Count;
+        }
+    }
     private void OnGUI()
     {
        
         DrawLayouts();
+
         bodyInputArea.GUIUpdate(body.GetRect());
 
-        pixelCoordinate = PIACanvas.WorldPositionToGridPixel(PIAInputArea.MousePosition, imageRect,
-                   body.GetRect().position, PIASession.Instance.ImageData.Canvas.GetFinalImage());
 
       //  drawer.CurrentMousePosition = PIACanvas.GridPixelToWorldPosition(pixelCoordinate, imageRect, PIASession.Instance.ImageData.Canvas.GetFinalImage());
         DrawHeader();
@@ -77,6 +109,9 @@ public class PIAEditorWindow : EditorWindow {
         DrawRightSide();
         DrawBody();
 
+        mouseCellCoordinate = grid.WorldToCellPosition(PIAInputArea.MousePosition);
+        if (mouseCellCoordinate.x < 0 || mouseCellCoordinate.y < 0 || mouseCellCoordinate.x >= PIASession.Instance.ImageData.Width || mouseCellCoordinate.y >= PIASession.Instance.ImageData.Height)
+            mouseCellCoordinate = new Vector2Int(-1, -1);
 
 
     }
@@ -108,7 +143,7 @@ public class PIAEditorWindow : EditorWindow {
             GUI.DrawTexture(item.GetRect(), item.GetTexture());
         }
     }
-
+    
     private void DrawHeader()
     {
         GUILayout.BeginArea(header.GetRect());
@@ -224,7 +259,7 @@ public class PIAEditorWindow : EditorWindow {
             }
             if (GUILayout.Button("Export", skin.GetStyle("editorbutton2"), GUILayout.MaxWidth(55), GUILayout.MaxHeight(55)))
             {
-                PIASession.Instance.ExportImage(PIASession.Instance.ImageData.Canvas.GetFinalImage());
+                PIASession.Instance.ExportImage(PIASession.Instance.ImageData.CurrentFrame.GetCurrentImage().Texture);
 
             }
 
@@ -234,41 +269,57 @@ public class PIAEditorWindow : EditorWindow {
     private void DrawBody()
     {
         float scale = body.GetRect().width * scaleMultiplier;
-        imageRect = new Rect((body.GetRect().width / 2 - scale / 2) + imageOffsetX, (body.GetRect().center.y - scale / 2)-header.GetRect().height + imageOffsetY, scale, scale);
-        Texture2D tex = PIASession.Instance.ImageData.Canvas.GetFinalImage();
-       
+        grid.Grid= new Rect((body.GetRect().width / 2 - scale / 2) + imageOffsetX, (BodyRect.center.y - scale / 2)-header.GetRect().height + imageOffsetY, scale, scale);
+        
         GUILayout.BeginArea(body.GetRect());
         {
-            if (tex != null)
-            {
-                EditorGUI.DrawTextureTransparent(imageRect, tex);
-                DrawGrid(imageRect, new Vector2(tex.width, tex.height));
-                drawer.DrawCurrentPixelBox(imageRect.width / tex.width);
-            }
+            DrawImagePreview();
+            EditorGUI.DrawTextureTransparent(grid.Grid, PIASession.Instance.ImageData.CurrentFrame.GetCurrentImage().Texture);
+            
+            DrawGrid(grid.Grid);
         }
         GUILayout.EndArea();
 
 
     }
+    private void DrawImagePreview() {
+        PIAImageData imageData = PIASession.Instance.ImageData;
+        int space = 10;
 
-    private void DrawGrid(Rect rect, Vector2 texDimension)
+        EditorGUI.DrawTextureTransparent(new Rect(space, 10, 100, 100), imageData.Frames[currentFrameInPreview].GetFrameTexture());
+        space += 120;
+        for (int i = 0; i < imageData.Frames.Count; i++)
+        {
+            Rect previewRect = new Rect(space, 10, 100, 100);
+            EditorGUI.DrawTextureTransparent(previewRect, imageData.Frames[i].GetFrameTexture());
+            if (GUI.Button(new Rect(previewRect.x,previewRect.y,previewRect.width/10,previewRect.height/10), "+"))
+            {
+                imageData.CurrentFrameIndex = i;
+            }
+            space += 110;
+        }
+       
+        if (GUI.Button(new Rect(space + 10, 35, 25, 25), "+")) {
+            imageData.AddFrame();
+        }
+
+    }
+    private void DrawGrid(Rect rect)
     {
-        float cellWidth = (rect.width / texDimension.x);
-        float cellHeight = (rect.height / texDimension.y);
-
-        if (cellWidth <= 10 || cellHeight <= 10)
+       
+        if (grid.CellWidth <= 10 || grid.CellHeight <= 10)
             return;
 
         Handles.BeginGUI();
         {
             Handles.color = Color.black;
 
-            for (float offsetX = 0; offsetX <= rect.width; offsetX += cellWidth)
+            for (float offsetX = 0; offsetX <= rect.width; offsetX += grid.CellWidth)
             {
                 Handles.DrawLine(new Vector2(rect.x + offsetX, rect.y), new Vector2(rect.x + offsetX, rect.y + rect.height));
 
             }
-            for (float offsetY = 0; offsetY <= rect.height; offsetY += cellHeight)
+            for (float offsetY = 0; offsetY <= rect.height; offsetY += grid.CellHeight)
             {
                 Handles.DrawLine(new Vector2(rect.x, rect.y + offsetY), new Vector2(rect.x + rect.width, rect.y + +offsetY));
 
@@ -280,17 +331,14 @@ public class PIAEditorWindow : EditorWindow {
     private void DrawPixelCoordinates()
     {
         //EditorGUILayout.LabelField(PIAInputArea.MousePosition.ToString(), skin.GetStyle("editorbutton2"));
+        PIAImageData imageData = PIASession.Instance.ImageData;
 
-        Texture tex = PIASession.Instance.ImageData.Canvas.GetFinalImage();
         
-
-        if (pixelCoordinate.x < 0 || pixelCoordinate.y < 0 || pixelCoordinate.x > tex.width || pixelCoordinate.y > tex.height)
-            pixelCoordinate = new Vector2Int(-1, -1);
         GUILayout.BeginArea(rightSide.GetRect());
         {
             
-            EditorGUILayout.LabelField("[" + tex.width + "x" + tex.height + "]", skin.GetStyle("editorbutton2"));
-            EditorGUILayout.LabelField(pixelCoordinate.ToString(), skin.GetStyle("editorbutton2"));
+            EditorGUILayout.LabelField("[" + imageData.Width + "x" + imageData.Height + "]", skin.GetStyle("editorbutton2"));
+            EditorGUILayout.LabelField(mouseCellCoordinate.ToString(), skin.GetStyle("editorbutton2"));
 
             window.Repaint();
         }
@@ -357,8 +405,7 @@ public class PIAEditorWindow : EditorWindow {
             }
         }
         private void LoadNewAsset() {
-            PIASession.Instance.LoadNewAsset();
-            PIASession.Instance.ImageData.Canvas.GetCurrentLayer().Image.Texture.Resize(width,height);
+            PIASession.Instance.LoadNewAsset(width,height);
             PIAEditorWindow.window.Repaint();
             window.Close();
         }
