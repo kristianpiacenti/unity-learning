@@ -44,6 +44,14 @@ public class PIAImageData : ScriptableObject {
         frames.Add(frame);
         CurrentFrameIndex = frames.Count - 1;
     }
+    public void RemoveFrame(int index) {
+        if (frames.Contains(frames[index]))
+        {
+
+            frames.Remove(frames[index]);
+            CurrentFrameIndex = index - 1;
+        }
+    }
     #endregion
     
 }
