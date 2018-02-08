@@ -22,10 +22,13 @@ public class PIAImageData : ScriptableObject {
 
     public int CurrentFrameIndex { get; set; }
     public int CurrentLayer { get; set; }
+    public PIAFrame CurrentFrame { get { return frames[CurrentFrameIndex]; } }
+
     public List<PIAFrame> Frames { get { return frames; } set { frames = value; } }
+    public List<PIALayer> Layers { get { return layers; } set { layers = value; } }
+
     public int Width { get { return _width; }  set { _width = value; } }
     public int Height { get { return _height; } set { _height = value; } }
-    public PIAFrame CurrentFrame { get { return frames[CurrentFrameIndex]; } }
 
     #endregion
 
@@ -36,7 +39,37 @@ public class PIAImageData : ScriptableObject {
         Width = width;
         Height = height;
         frames = new List<PIAFrame>();
-        AddFrame();
+        layers = new List<PIALayer>();
+        AddLayer();
+    }
+    public void AddLayer()
+    {
+        PIALayer layer = new PIALayer();
+        layer.Index = layers.Count;
+        layer.Name = "Layer" + layer.Index;
+        layers.Add(layer);
+
+        CurrentLayer = layers.Count - 1;
+        if (frames.Count == 0)
+            AddFrame();
+        else
+            foreach (var item in frames)
+            {
+                item.AddTexture();
+            }
+            
+    }
+    public void RemoveLayer(int index)
+    {
+        if (layers.Contains(layers[index]))
+        {
+            layers.Remove(layers[index]);
+            CurrentLayer = index - 1;
+            foreach (var item in frames)
+            {
+                item.RemoveTexture(index);
+            }
+        }
     }
     public void AddFrame() {
         PIAFrame frame = new PIAFrame();
@@ -55,19 +88,43 @@ public class PIAImageData : ScriptableObject {
     #endregion
     
 }
+
+[System.Serializable]
 public struct PIALayer {
-    public int Index { get; set; }
-    public string Name { get; set; }
+    [SerializeField]
+    private int _index;
+    [SerializeField]
+    private string _name;
+
+    public int Index { get { return _index; } set { _index = value; } }
+    public string Name { get { return _name; } set { _name = value; } }
 }
+
 [System.Serializable]
 public class PIAFrame {
     [SerializeField]
     private List<PIATexture> textures;
     public void Init(PIAImageData _imageData) {
         textures = new List<PIATexture>();
+        foreach (var item in _imageData.Layers)
+        {
+            AddTexture(_imageData);
+        }
+    }
+    public void AddTexture(PIAImageData imageData)
+    {
         PIATexture texture = new PIATexture();
-        texture.Init(_imageData.Width, _imageData.Height, _imageData.CurrentLayer);
+        texture.Init(imageData.Width, imageData.Height, imageData.CurrentLayer);
         textures.Add(texture);
+    }
+    public void AddTexture() {
+        PIAImageData imageData = PIASession.Instance.ImageData;
+        AddTexture(imageData);
+    }
+    public void RemoveTexture(int index)
+    {
+        if (textures.Contains(textures[index]))
+            textures.Remove(textures[index]);
     }
     public PIATexture GetCurrentImage()
     {

@@ -34,20 +34,21 @@ public class PIAAnimator{
     #region Methods
 
     public PIAAnimator() {
-        imageData = PIASession.Instance.ImageData;
         Speed = 1;
     }
 
     public void Update() {
+
         timer += Time.deltaTime * Speed;
         if (timer >= 1)
         {
             timer = 0;
-            currentFrameInPreview = (currentFrameInPreview + 1) % imageData.Frames.Count;
+            currentFrameInPreview = (currentFrameInPreview + 1) % PIASession.Instance.ImageData.Frames.Count;
         }
     }
     public PIAFrame GetFrameOrFirst() {
         PIAFrame output;
+        imageData = PIASession.Instance.ImageData;
 
         if (currentFrameInPreview < imageData.Frames.Count)
             output = imageData.Frames[currentFrameInPreview] == null ? imageData.Frames[0] : imageData.Frames[currentFrameInPreview];

@@ -26,7 +26,6 @@ public class PIATexture
         }
         set
         {
-            Debug.Log("tex set");
             Init(value);
         }
     }

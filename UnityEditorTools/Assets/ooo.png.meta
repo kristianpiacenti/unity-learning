@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: af37de0112eac074680f3f4d9dd59063
-timeCreated: 1518084128
+guid: 0205cbad58044804c9e1ccada9ef88eb
+timeCreated: 1517824400
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName: {}
@@ -57,30 +57,30 @@ TextureImporter:
   textureFormatSet: 0
   platformSettings:
   - buildTarget: DefaultTexturePlatform
-    maxTextureSize: 256
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
     androidETC2FallbackOverride: 0
   - buildTarget: Standalone
-    maxTextureSize: 256
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
     androidETC2FallbackOverride: 0
   - buildTarget: Android
-    maxTextureSize: 256
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -90,44 +90,7 @@ TextureImporter:
     serializedVersion: 2
     sprites: []
     outline: []
-    physicsShape:
-    - - {x: 53, y: -71}
-      - {x: 61, y: -63}
-      - {x: 62, y: -60}
-      - {x: 66, y: -32}
-      - {x: 70, y: -16}
-      - {x: 70, y: 13}
-      - {x: 67, y: 15}
-      - {x: 67, y: 29}
-      - {x: 63, y: 31}
-      - {x: 62, y: 44}
-      - {x: 61, y: 47}
-      - {x: 53, y: 55}
-      - {x: 51, y: 61}
-      - {x: 45, y: 67}
-      - {x: 29, y: 79}
-      - {x: 11, y: 86}
-      - {x: -13, y: 86}
-      - {x: -15, y: 83}
-      - {x: -25, y: 83}
-      - {x: -33, y: 79}
-      - {x: -45, y: 71}
-      - {x: -54, y: 61}
-      - {x: -66, y: 37}
-      - {x: -70, y: 20}
-      - {x: -70, y: -13}
-      - {x: -67, y: -15}
-      - {x: -67, y: -33}
-      - {x: -63, y: -35}
-      - {x: -63, y: -73}
-      - {x: -57, y: -79}
-      - {x: -47, y: -79}
-      - {x: -41, y: -72}
-      - {x: -29, y: -79}
-      - {x: -16, y: -82}
-      - {x: 19, y: -82}
-      - {x: 33, y: -75}
-      - {x: 38, y: -70}
+    physicsShape: []
   spritePackingTag: 
   userData: 
   assetBundleName: 
