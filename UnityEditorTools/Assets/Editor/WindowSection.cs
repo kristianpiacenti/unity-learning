@@ -21,7 +21,7 @@ namespace Piacenti.EditorTools {
         {
             _rect = rect;
             _texture2D = texture;
-
+            
         }
 
         public Rect GetRect()
