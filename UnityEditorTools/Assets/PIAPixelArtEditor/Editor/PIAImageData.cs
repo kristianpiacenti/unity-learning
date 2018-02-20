@@ -64,25 +64,27 @@ public class PIAImageData : ScriptableObject {
         if (layers.Contains(layers[index]))
         {
             layers.Remove(layers[index]);
-            CurrentLayer = index - 1;
+            CurrentLayer = Mathf.Max(0,index - 1);
             foreach (var item in frames)
             {
                 item.RemoveTexture(index);
             }
         }
     }
-    public void AddFrame() {
+    public PIAFrame AddFrame() {
         PIAFrame frame = new PIAFrame();
         frame.Init(this);
         frames.Add(frame);
         CurrentFrameIndex = frames.Count - 1;
+        return frame;
     }
     public void RemoveFrame(int index) {
         if (frames.Contains(frames[index]))
         {
 
             frames.Remove(frames[index]);
-            CurrentFrameIndex = index - 1;
+            CurrentFrameIndex = Mathf.Max(0, index-1);
+            
         }
     }
     #endregion
@@ -95,7 +97,10 @@ public struct PIALayer {
     private int _index;
     [SerializeField]
     private string _name;
+    [SerializeField]
+    private bool _hidden;
 
+    public bool Hidden { get { return _hidden; } set { _hidden = value; } }
     public int Index { get { return _index; } set { _index = value; } }
     public string Name { get { return _name; } set { _name = value; } }
 }
@@ -111,15 +116,28 @@ public class PIAFrame {
             AddTexture(_imageData);
         }
     }
-    public void AddTexture(PIAImageData imageData)
+    public PIATexture AddTexture(PIAImageData imageData)
     {
         PIATexture texture = new PIATexture();
         texture.Init(imageData.Width, imageData.Height, imageData.CurrentLayer);
         textures.Add(texture);
+        return texture;
     }
-    public void AddTexture() {
+    public PIATexture AddTexture() {
         PIAImageData imageData = PIASession.Instance.ImageData;
-        AddTexture(imageData);
+        return AddTexture(imageData);
+    }
+    public void CopyFrom(PIAFrame source) {
+        textures.Clear();
+        foreach (var item in source.textures)
+        {
+            byte[] itemData = item.Texture.EncodeToPNG();
+            PIATexture piaTexture = AddTexture();
+            piaTexture.LayerIndex = item.LayerIndex;
+            Texture2D texture = piaTexture.Texture;
+            texture.LoadImage(itemData);
+            texture.Apply();
+        }
     }
     public void RemoveTexture(int index)
     {
@@ -130,8 +148,61 @@ public class PIAFrame {
     {
         return textures[PIASession.Instance.ImageData.CurrentLayer];
     }
+    public Texture2D GetFrameTextureWithLayerFilters() {
+        PIAImageData imageData = PIASession.Instance.ImageData;
+        Texture2D finalTexture = PIATexture.CreateBlank(PIASession.Instance.ImageData.Width, PIASession.Instance.ImageData.Height);
+        finalTexture.filterMode = FilterMode.Point;
+        Color nativeColor = finalTexture.GetPixel(0, 0);
+
+        List<int> hiddenLayersIndex = new List<int>();
+        foreach (var item in imageData.Layers)
+        {
+            if (item.Hidden == true)
+                hiddenLayersIndex.Add(item.Index);
+        }
+        textures = textures.OrderBy(x => x.LayerIndex).ToList();
+        foreach (var item in textures)
+        {
+            if (hiddenLayersIndex.Contains(item.LayerIndex))
+                continue;
+
+            if (imageData.CurrentLayer == item.LayerIndex)
+            {
+                for (int x = 0; x < PIASession.Instance.ImageData.Width; x++)
+                {
+                    for (int y = 0; y < PIASession.Instance.ImageData.Height; y++)
+                    {
+                        Color pixelColor = item.Texture.GetPixel(x, y);
+                        if (pixelColor.a>0)
+                        {
+                            finalTexture.SetPixel(x, y, pixelColor);
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+                for (int x = 0; x < PIASession.Instance.ImageData.Width; x++)
+                {
+                    for (int y = 0; y < PIASession.Instance.ImageData.Height; y++)
+                    {
+                        Color pixelColor = item.Texture.GetPixel(x, y);
+                        pixelColor.a = pixelColor.a / 2;
+                        if (pixelColor.a > 0 && nativeColor.Equals(finalTexture.GetPixel(x, y)))
+                        {
+                            finalTexture.SetPixel(x, y, pixelColor);
+                        }
+                    }
+                }
+            }
+        }
+        finalTexture.Apply();
+
+        return finalTexture;
+    }
     public Texture2D GetFrameTexture() {
-        Texture2D finalTexture = new Texture2D(PIASession.Instance.ImageData.Width, PIASession.Instance.ImageData.Height);
+        Texture2D finalTexture = PIATexture.CreateBlank(PIASession.Instance.ImageData.Width, PIASession.Instance.ImageData.Height);
         finalTexture.filterMode = FilterMode.Point;
         textures = textures.OrderBy(x => x.LayerIndex).ToList();
         foreach (var item in textures)
@@ -141,7 +212,7 @@ public class PIAFrame {
                 for (int y = 0; y < PIASession.Instance.ImageData.Height; y++)
                 {
                     Color pixelColor = item.Texture.GetPixel(x, y);
-                    if (!pixelColor.Equals(Color.clear))
+                    if (pixelColor.a>0)
                     {
                         finalTexture.SetPixel(x, y, pixelColor);
                     }

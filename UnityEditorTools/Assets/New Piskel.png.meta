@@ -1,13 +1,19 @@
 fileFormatVersion: 2
-guid: c769a401dc07a7647bd7f6e80fcfa1c3
-timeCreated: 1518769723
+guid: 690e928c920c37044b9877ed68aab543
+timeCreated: 1518772698
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: pen_0
-    21300002: pen_1
-    21300004: pen_2
-    21300006: pen_3
+    21300000: New Piskel_0
+    21300002: New Piskel_1
+    21300004: New Piskel_2
+    21300006: New Piskel_3
+    21300008: New Piskel_4
+    21300010: New Piskel_5
+    21300012: New Piskel_6
+    21300014: New Piskel_7
+    21300016: New Piskel_8
+    21300018: New Piskel_9
   externalObjects: {}
   serializedVersion: 4
   mipmaps:
@@ -61,7 +67,7 @@ TextureImporter:
   textureFormatSet: 0
   platformSettings:
   - buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -71,7 +77,7 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
   - buildTarget: Standalone
-    maxTextureSize: 2048
+    maxTextureSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -81,7 +87,7 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
   - buildTarget: Android
-    maxTextureSize: 2048
+    maxTextureSize: 32
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -94,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: pen_0
+      name: New Piskel_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 64
-        width: 64
-        height: 64
+        y: 13
+        width: 6
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -108,13 +114,13 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: pen_1
+      name: New Piskel_1
       rect:
         serializedVersion: 2
-        x: 64
-        y: 64
-        width: 64
-        height: 64
+        x: 6
+        y: 13
+        width: 6
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -122,13 +128,55 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: pen_2
+      name: New Piskel_2
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 13
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: New Piskel_3
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 13
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: New Piskel_4
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 13
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: New Piskel_5
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 64
-        height: 64
+        y: 6
+        width: 6
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -136,13 +184,55 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: pen_3
+      name: New Piskel_6
       rect:
         serializedVersion: 2
-        x: 64
-        y: 0
-        width: 64
-        height: 64
+        x: 6
+        y: 6
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: New Piskel_7
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 6
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: New Piskel_8
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 6
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: New Piskel_9
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 6
+        width: 6
+        height: 7
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

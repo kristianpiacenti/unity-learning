@@ -5,6 +5,9 @@ public class PIAInputArea {
     #region Static
 
     public static Vector2 MousePosition { get { return e.mousePosition; } }
+    public static bool IsMouseInsideRect(Rect rect) {
+        return rect.Contains(MousePosition);
+    }
 
     #endregion
 

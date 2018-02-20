@@ -4,6 +4,44 @@ using UnityEngine;
 [System.Serializable]
 public class PIATexture
 {
+
+    #region Static
+
+    public static void Wipe(Texture2D tex)
+    {
+        Color[] colors = new Color[tex.width * tex.height];
+        for (int i = 0; i < colors.Length; i++)
+        {
+            colors[i] = PIADrawer.ClearColor;
+        }
+        tex.SetPixels(colors);
+
+    }
+    public static Texture2D CreateBlank(int width, int height)
+    {
+        Texture2D tex = new Texture2D(width, height);
+        Wipe(tex);
+        tex.Apply();
+        return tex;
+
+    }
+
+    public static void Crop(ref Color[] map, ref Texture2D texture, int width, int height)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                map[(y * width) + x] = texture.GetPixel(x, y);
+            }
+        }
+        texture.Resize(width, height);
+        texture.SetPixels(map);
+        texture.Apply();
+    }
+
+    #endregion
+
     #region Fields
     [SerializeField]
     private Color[] map;
@@ -39,10 +77,9 @@ public class PIATexture
         width = _width;
         height = _height;
         LayerIndex = _layerIndex;
-        texture = new Texture2D(width, height);
+        texture = CreateBlank(width, height);
         texture.filterMode = FilterMode.Point;
         map = new Color[width * height];
-        ClearTexture();
     }
     public void Init(Texture2D tex)
     {
@@ -51,37 +88,28 @@ public class PIATexture
         Crop(ref map, ref tex, width, height);
 
     }
-    public static void Crop(ref Color[] map, ref Texture2D texture,int width, int height) {
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                map[(y * width) + x] = texture.GetPixel(x, y);
-            }
-        }
-        texture.Resize(width, height);
-        texture.SetPixels(map);
-        texture.Apply();
-    }
-    public void ClearTexture()
+    public void ClearTexture(bool apply=false)
     {
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                Paint(x, y, Color.clear, false);
+                Paint(x, y, PIADrawer.ClearColor, false);
             }
         }
-       
+        if(apply)
+            Texture.Apply();
     }
 
-    public void Paint(int x, int y, Color color, bool registerUndo = true)
+
+    public void Paint(int x, int y, Color color, bool registerUndo = true, bool apply = false)
     {
         if (registerUndo)
             Undo.RegisterCompleteObjectUndo(texture, "Paint");
        
         texture.SetPixel(x, y, color);
-        texture.Apply();
+        if (apply)
+            texture.Apply();
     }
     public void Paint(Color[] _map)
     {
@@ -96,7 +124,7 @@ public class PIATexture
     }
     public void Erase(int x, int y, Color color)
     {
-        Paint(x, y, Color.clear);
+        Paint(x, y, PIADrawer.ClearColor);
     }
 
     public void Save()
@@ -128,5 +156,5 @@ public class PIATexture
     #endregion
 
 
-
+   
 }

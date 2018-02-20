@@ -1,13 +1,13 @@
 fileFormatVersion: 2
-guid: c769a401dc07a7647bd7f6e80fcfa1c3
-timeCreated: 1518769723
+guid: a294ad04d277028498099295cd6c0d8b
+timeCreated: 1519033189
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: pen_0
-    21300002: pen_1
-    21300004: pen_2
-    21300006: pen_3
+    21300000: 0_96
+    21300002: 0_48
+    21300004: 48_96
+    21300006: 48_48
   externalObjects: {}
   serializedVersion: 4
   mipmaps:
@@ -26,7 +26,7 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
-  isReadable: 0
+  isReadable: 1
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -40,7 +40,7 @@ TextureImporter:
     mipBias: -1
     wrapU: 1
     wrapV: 1
-    wrapW: -1
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -61,30 +61,10 @@ TextureImporter:
   textureFormatSet: 0
   platformSettings:
   - buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 128
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    androidETC2FallbackOverride: 0
-  - buildTarget: Standalone
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    androidETC2FallbackOverride: 0
-  - buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -94,61 +74,61 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: pen_0
+      name: 0_96
       rect:
         serializedVersion: 2
         x: 0
-        y: 64
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        y: 48
+        width: 48
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
     - serializedVersion: 2
-      name: pen_1
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 64
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-    - serializedVersion: 2
-      name: pen_2
+      name: 0_48
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 48
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
     - serializedVersion: 2
-      name: pen_3
+      name: 48_96
       rect:
         serializedVersion: 2
-        x: 64
-        y: 0
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 48
+        y: 48
+        width: 48
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 48_48
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 48
+        height: 48
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
     outline: []
     physicsShape: []
   spritePackingTag: 

@@ -18,9 +18,6 @@ public class PIAEditorWindow : EditorWindow {
     WindowSection rightSide;
     List<WindowSection> sections;
 
-    
-
-
     PIAInputArea bodyInputArea;
     PIAInputArea imageInputArea;
 
@@ -36,6 +33,9 @@ public class PIAEditorWindow : EditorWindow {
     Vector2Int mouseCellCoordinate;
     Color buttonsBG = new Color(0.1294f, 0.1294f, 0.1294f, 1.0000f);
 
+    Vector2 framesSlider;
+    Vector2 layersSlider;
+
     #endregion
 
     #region Properties
@@ -48,6 +48,7 @@ public class PIAEditorWindow : EditorWindow {
         }
     }
     public Rect BodyRect { get { return body.GetRect(); } }
+    public PIATexture HelpToolTexture { get; set; }
     #endregion
 
 
@@ -78,13 +79,19 @@ public class PIAEditorWindow : EditorWindow {
         bodyInputArea.OnGUIUpdate += ChangeImageScaleMultiplier;
         bodyInputArea.OnGUIUpdate += (e) => drawer.OnGUIExecute(e,mouseCellCoordinate);
         bodyInputArea.OnGUIUpdate += ChangeImageOffset;
-        
+        HelpToolTexture = new PIATexture();
+        HelpToolTexture.Init(PIASession.Instance.ImageData.Width, PIASession.Instance.ImageData.Height, 0);
         //INIT WINDOW SECTIONS
         InitializeSections();
 
         //INIT GRAPHICS
         skin = Resources.Load<GUISkin>("Skins/PIAPixelArtEditorSkin");
 
+    }
+    private void OnDisable()
+    {
+        PIAExportSettingsWindow.CloseWindow();
+        PIAExtendedPreviewWindow.CloseWindow();
     }
     private void Update()
     {
@@ -176,9 +183,13 @@ public class PIAEditorWindow : EditorWindow {
         GUILayout.BeginArea(rightRect);
         {
             DrawFrames(rightRect);
+            DrawSessionBar(rightRect);
+            DrawGridInfo(rightRect);
 
         }
         GUILayout.EndArea();
+       // Debug.Log(PIAInputArea.MousePosition);
+
     }
     private void DrawBody()
     {
@@ -187,9 +198,11 @@ public class PIAEditorWindow : EditorWindow {
         
         GUILayout.BeginArea(body.GetRect());
         {
-            EditorGUI.DrawTextureTransparent(grid.Grid, PIASession.Instance.ImageData.CurrentFrame.GetCurrentImage().Texture);
-            
+
+            EditorGUI.DrawTextureTransparent(grid.Grid, PIASession.Instance.ImageData.CurrentFrame.GetFrameTextureWithLayerFilters());
+            GUI.DrawTexture(grid.Grid, HelpToolTexture.Texture);
             DrawGrid(grid.Grid);
+            HelpToolTexture.ClearTexture();
         }
         GUILayout.EndArea();
 
@@ -199,12 +212,12 @@ public class PIAEditorWindow : EditorWindow {
     private void DrawToolbar()
     {
         Texture2D pen = PIATextureDatabase.Instance.GetTexture("pen");
-        Texture2D circleTool = PIATextureDatabase.Instance.GetTexture("circletool");
+        Texture2D eraser = PIATextureDatabase.Instance.GetTexture("eraser");
         Texture2D squareTool = PIATextureDatabase.Instance.GetTexture("squaretool");
-        Texture2D lineTool = PIATextureDatabase.Instance.GetTexture("linetool");
+        Texture2D filledSquareTool = PIATextureDatabase.Instance.GetTexture("filledsquaretool");
         Texture2D selectionBox = PIATextureDatabase.Instance.GetTexture("selectionbox");
 
-        Texture2D[] icons = new Texture2D[] { pen, circleTool, squareTool, lineTool, selectionBox };
+        Texture2D[] icons = new Texture2D[] { pen, eraser, squareTool, filledSquareTool, selectionBox };
 
         float iconWidth = 36;
         int iconsPerLine = icons.Length;
@@ -217,7 +230,7 @@ public class PIAEditorWindow : EditorWindow {
         GUILayout.BeginHorizontal();
         {
             GUILayout.Space(15);
-            drawer.DrawerType = (PIADrawerType)GUILayout.SelectionGrid((int)drawer.DrawerType,
+            drawer.ToolType = (PIAToolType)GUILayout.SelectionGrid((int)drawer.ToolType,
             icons, iconsPerLine, skin.GetStyle("editorbutton"),
             GUILayout.MaxWidth(toolbarMaxWidth), GUILayout.MaxHeight(toolbarMaxHeight));
 
@@ -237,7 +250,7 @@ public class PIAEditorWindow : EditorWindow {
     private void DrawProjectName(Rect parent)
     {
         float projectNameRectHeight = 40;
-        Rect projectNameRect = new Rect(parent.x, parent.height - projectNameRectHeight, parent.width, projectNameRectHeight);
+        Rect projectNameRect = new Rect(0, parent.height - projectNameRectHeight, parent.width, projectNameRectHeight);
 
         Texture2D layerBG = new Texture2D(1, 1);
         layerBG.SetPixel(0, 0, buttonsBG);
@@ -263,29 +276,81 @@ public class PIAEditorWindow : EditorWindow {
         
 
     }
+    private void DrawGridInfo(Rect parent)
+    {
+        PIAImageData imageData = PIASession.Instance.ImageData;
+
+        //GRID INFO RECT
+        float gridInfoRectHeight = 40;
+        Rect gridInfoRect = new Rect(0, parent.height - gridInfoRectHeight, parent.width, gridInfoRectHeight);
+        Texture2D gridInfoBG = new Texture2D(1, 1);
+
+        //DRAWING STUFF
+        gridInfoBG.SetPixel(0, 0, buttonsBG);
+        gridInfoBG.Apply();
+        GUI.DrawTexture(gridInfoRect, gridInfoBG);
+
+        GUILayout.BeginArea(gridInfoRect);
+        {
+            GUILayout.FlexibleSpace();
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.FlexibleSpace();
+                GUILayout.BeginVertical();
+                {
+                    GUILayout.Label("[" + imageData.Width + "x" + imageData.Height + "]", skin.GetStyle("editorbutton2"));
+                    GUILayout.Label(mouseCellCoordinate.ToString(), skin.GetStyle("editorbutton2"));
+                }
+                GUILayout.EndVertical();
+                GUILayout.FlexibleSpace();
+
+
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.FlexibleSpace();
+
+        }
+        GUILayout.EndArea();
+
+
+    }
+
     private Rect DrawPreview(Rect parent) {
         Vector2 offset = new Vector2(20, 20);
 
+        // PREVIEW RECT
         Vector2 previewLocalPosition = new Vector2(offset.x, offset.y);
         Vector2 previewDimension = new Vector2(parent.width - offset.x * 2, parent.width - offset.x * 2);
         Rect previewRect = new Rect(previewLocalPosition, previewDimension);
 
+        // SLIDER RECT
         Vector2 speedSliderLocalPosition = new Vector2(previewRect.x, previewRect.yMax);
         Vector2 speedSliderDimension = new Vector2(previewRect.width, 20);
         Rect speedSliderRect = new Rect(speedSliderLocalPosition, speedSliderDimension);
 
+        // BG RECT
         Texture2D previewBG = new Texture2D(1, 1);
         previewBG.SetPixel(0, 0, buttonsBG);
         previewBG.Apply();
         Rect previewBGRect = new Rect(previewRect.x - offset.x / 2, previewRect.y - offset.y / 2, previewRect.width + offset.x,
             previewRect.height + speedSliderRect.height + offset.y / 2);
 
+        // EXTEND WINDOW RECT
+        Vector2 extendWindowRectOffset = new Vector2(5, 5);
+        float extendWindowRectWidth = 24;
+        float extendWindowRectHeight = 24;
+        Rect extendWindowRect = new Rect(previewRect.xMax - extendWindowRectWidth - extendWindowRectOffset.x, 
+            previewRect.yMax - extendWindowRectHeight - extendWindowRectOffset.y, extendWindowRectWidth, extendWindowRectHeight);
+
+        // DRAWING STUFF
         GUI.DrawTexture(previewBGRect, previewBG);
-
-        EditorGUI.DrawTextureTransparent(previewRect,
-            PIAAnimator.Instance.GetFrameOrFirst().GetFrameTexture());
-
+        EditorGUI.DrawTextureTransparent(previewRect,PIAAnimator.Instance.GetFrameOrFirst().GetFrameTexture());
         PIAAnimator.Instance.Speed = (int)GUI.HorizontalSlider(speedSliderRect, PIAAnimator.Instance.Speed, 1, 24);
+        if (PIAInputArea.IsMouseInsideRect(previewBGRect))
+        {
+            if (GUI.Button(extendWindowRect, GUIContent.none,skin.GetStyle("extendpreview")))
+                PIAExtendedPreviewWindow.ShowWindow();
+        }
         return previewBGRect;
     }
     private void DrawLayers(Rect verticalParent) {
@@ -337,7 +402,7 @@ public class PIAEditorWindow : EditorWindow {
 
                         GUILayout.BeginHorizontal();
                         {
-                            GUILayout.Toggle(true, GUIContent.none, skin.GetStyle("layereye"), GUILayout.MaxWidth(30), GUILayout.MaxHeight(30));
+                            item.Hidden = GUILayout.Toggle(item.Hidden, GUIContent.none, skin.GetStyle("layereye"), GUILayout.MaxWidth(30), GUILayout.MaxHeight(30));
                             GUILayout.Space(5);
                             if (i != 0)
                                 if (GUILayout.Button(GUIContent.none, skin.GetStyle("deletelayer"), GUILayout.MaxWidth(30), GUILayout.MaxHeight(30))) {
@@ -366,6 +431,12 @@ public class PIAEditorWindow : EditorWindow {
                 PIASession.Instance.ImageData.CurrentLayer = i;
             }
             layerRectPositionY += layerRectHeight + spaceBetweenLayers;
+
+            if (i == PIASession.Instance.ImageData.CurrentLayer)
+            {
+                GUI.Label(layerRect, GUIContent.none, skin.GetStyle("selectedlayeroverlay"));
+            }
+            PIASession.Instance.ImageData.Layers[i] = item;
         }
 
 
@@ -442,45 +513,171 @@ public class PIAEditorWindow : EditorWindow {
         float frameRectHeight = frameRectWidth;
         float spaceBetweenFrames = 25;
 
+        float frameNumberRectWidth = 22;
+        float frameNumberRectHeight = 22;
+
+        float deleteFrameRectWidth = 32;
+        float deleteFrameRectHeight = 32;
+        Vector2 deleteFrameRectOffset = new Vector2(2, 2);
+
+        float duplicateFrameRectWidth = 32;
+        float duplicateFrameRectHeight = 32;
+        Vector2 duplicateFrameRectOffset = new Vector2(2, 2);
+
+        float addFrameIconRectWidth = 40;
+        float addFrameIconRectHeight = 40;
+
         Texture2D frameBG = new Texture2D(1, 1);
         frameBG.SetPixel(0, 0, buttonsBG);
         frameBG.Apply();
 
-        for (int i = 0; i < imageData.Frames.Count; i++)
+        Rect viewRect = new Rect(0, 0, parent.width, (frameRectHeight+spaceBetweenFrames) * (imageData.Frames.Count+1)+offset.y);
+        Rect sliderRect = new Rect(0, 0, parent.width, parent.height-offset.y);
+
+        GUIStyle nativeVerticalScrollbarThumb = GUI.skin.verticalScrollbarThumb;
+        GUI.skin.verticalScrollbarThumb.normal.background = PIATextureDatabase.Instance.GetTexture("empty");
+        GUIStyle nativeVerticalScrollbarDownButton = GUI.skin.verticalScrollbarDownButton;
+        GUI.skin.verticalScrollbarDownButton.normal.background = PIATextureDatabase.Instance.GetTexture("empty");
+        GUIStyle nativeVerticalScrollbarUpButton = GUI.skin.verticalScrollbarUpButton;
+        GUI.skin.verticalScrollbarUpButton.normal.background = PIATextureDatabase.Instance.GetTexture("empty");
+
+
+        framesSlider = GUI.BeginScrollView(sliderRect, framesSlider,viewRect,false,false,skin.GetStyle("horizontalscrollbar"),skin.GetStyle("verticalscrollbar"));
         {
-            var item = imageData.Frames[i];
-            Rect frameRect = new Rect(frameRectPositionX, frameRectPositionY, frameRectWidth, frameRectHeight);
-            Rect frameBGRect = new Rect(frameRect.x - bgSize.x / 2, frameRect.y - bgSize.y / 2, frameRect.width + bgSize.x,
-                frameRect.height + bgSize.y);
-
-            GUI.DrawTexture(frameBGRect, frameBG);
-            
-            EditorGUI.DrawTextureTransparent(frameRect, imageData.Frames[i].GetFrameTexture());
-
-            if (GUI.Button(frameRect, GUIContent.none, skin.GetStyle("bglayerbutton")))
+            for (int i = 0; i < imageData.Frames.Count; i++)
             {
-                PIASession.Instance.ImageData.CurrentFrameIndex = i;
+                var item = imageData.Frames[i];
+                Rect frameRect = new Rect(frameRectPositionX, frameRectPositionY, frameRectWidth, frameRectHeight);
+                Rect frameBGRect = new Rect(frameRect.x - bgSize.x / 2, frameRect.y - bgSize.y / 2, frameRect.width + bgSize.x,
+                    frameRect.height + bgSize.y);
+                Rect frameNumberBGRect = new Rect(frameBGRect.xMax, frameBGRect.center.y - frameNumberRectHeight / 2, frameNumberRectWidth, frameNumberRectHeight);
+                Rect deleteFrameRect = new Rect(frameRect.xMax - deleteFrameRectWidth - deleteFrameRectOffset.x,
+                    frameRect.y + deleteFrameRectOffset.y, deleteFrameRectWidth, deleteFrameRectHeight);
+                Rect duplicateFrameRect = new Rect(frameRect.xMax - duplicateFrameRectWidth - duplicateFrameRectOffset.x,
+                    frameRect.yMax - duplicateFrameRectOffset.y - duplicateFrameRectHeight, duplicateFrameRectWidth, duplicateFrameRectHeight);
+
+                GUI.DrawTexture(frameNumberBGRect, frameBG);
+                GUI.Label(frameNumberBGRect, i.ToString(), skin.GetStyle("editorbutton2"));
+                GUI.DrawTexture(frameBGRect, frameBG);
+                EditorGUI.DrawTextureTransparent(frameRect, imageData.Frames[i].GetFrameTexture());
+                if (PIAInputArea.IsMouseInsideRect(frameBGRect))
+                {
+                    if (imageData.Frames.Count > 1)
+                    {
+
+                        if (GUI.Button(deleteFrameRect, GUIContent.none, skin.GetStyle("deleteframe")))
+                        {
+                            PIASession.Instance.ImageData.RemoveFrame(i);
+                        }
+
+                    }
+
+                    if (GUI.Button(duplicateFrameRect, GUIContent.none, skin.GetStyle("copyframe")))
+                    {
+                        PIAFrame newFrame = PIASession.Instance.ImageData.AddFrame();
+                        newFrame.CopyFrom(item);
+                    }
+                }
+
+
+                if (GUI.Button(frameBGRect, GUIContent.none, skin.GetStyle("bglayerbutton")))
+                {
+                    PIASession.Instance.ImageData.CurrentFrameIndex = i;
+                }
+
+                frameRectPositionY += frameRectHeight + spaceBetweenFrames;
+                if (i == PIASession.Instance.ImageData.CurrentFrameIndex)
+                {
+                    GUI.Label(frameBGRect, GUIContent.none, skin.GetStyle("selectedframeoverlay"));
+                }
+            }
+
+
+
+            Rect addFrameRect = new Rect(frameRectPositionX, frameRectPositionY, frameRectWidth, frameRectHeight);
+            Rect addFrameBGRect = new Rect(addFrameRect.x - bgSize.x / 2, addFrameRect.y - bgSize.y / 2, addFrameRect.width + bgSize.x,
+                    addFrameRect.height + bgSize.y);
+            Rect addFrameBGLabelIcon = new Rect(addFrameRect.center.x - addFrameIconRectWidth / 2, addFrameRect.center.y - addFrameIconRectHeight / 2, addFrameIconRectWidth, addFrameIconRectHeight);
+
+
+
+            GUI.DrawTexture(addFrameBGRect, frameBG);
+            GUI.Label(addFrameBGLabelIcon, GUIContent.none, skin.GetStyle("addframe"));
+
+
+            if (GUI.Button(addFrameRect, GUIContent.none, skin.GetStyle("bglayerbutton")))
+            {
+                PIASession.Instance.ImageData.AddFrame();
             }
             frameRectPositionY += frameRectHeight + spaceBetweenFrames;
         }
-
-        Rect addFrameRect = new Rect(frameRectPositionX, frameRectPositionY, frameRectWidth, frameRectHeight);
-        Rect addFrameBGRect = new Rect(addFrameRect.x - bgSize.x / 2, addFrameRect.y - bgSize.y / 2, addFrameRect.width + bgSize.x,
-                addFrameRect.height + bgSize.y);
-
-        GUI.DrawTexture(addFrameBGRect, frameBG);
+        GUI.EndScrollView();
 
 
-        if (GUI.Button(addFrameRect, GUIContent.none, skin.GetStyle("bglayerbutton")))
-        {
-            PIASession.Instance.ImageData.AddFrame();
-        }
-        frameRectPositionY += frameRectHeight + spaceBetweenFrames;
-
+        GUI.skin.verticalScrollbarThumb = nativeVerticalScrollbarThumb;
+        GUI.skin.verticalScrollbarDownButton = nativeVerticalScrollbarDownButton;
+        GUI.skin.verticalScrollbarUpButton = nativeVerticalScrollbarUpButton;
 
 
     }
+    private void DrawSessionBar(Rect parent) {
+        float buttonWidth = 46;
+        float buttonHeight = 46;
+        float spaceBetweenRects = 20;
 
+        Vector2 offset = new Vector2(5, 180);
+        
+        Vector2 bgOffset = new Vector2(8, 8);
+        Texture2D bg = new Texture2D(1, 1);
+        bg.SetPixel(0, 0, buttonsBG);
+        bg.Apply();
+        
+        Rect firstRect = new Rect(parent.width - buttonWidth - offset.x, offset.y, buttonWidth, buttonHeight * 3);
+        Rect firstRectBG = new Rect(firstRect.x - bgOffset.x / 2, firstRect.y - bgOffset.y / 2, firstRect.width + bgOffset.x, firstRect.height + bgOffset.y);
+
+        GUI.DrawTexture(firstRectBG, bg);
+        GUILayout.BeginArea(firstRect);
+        {
+            GUILayout.BeginVertical();
+            {
+                if (GUILayout.Button(GUIContent.none, skin.GetStyle("newsession"), GUILayout.MaxWidth(buttonWidth), GUILayout.MaxHeight(buttonHeight))) {
+                    PIANewImageWindow.ShowWindow();
+                }
+                if (GUILayout.Button(GUIContent.none, skin.GetStyle("openasset"), GUILayout.MaxWidth(buttonWidth), GUILayout.MaxHeight(buttonHeight))) {
+                    PIASession.Instance.LoadAsset();
+                }
+                if (GUILayout.Button(GUIContent.none, skin.GetStyle("savesession"), GUILayout.MaxWidth(buttonWidth), GUILayout.MaxHeight(buttonHeight))) {
+                    PIASession.Instance.SaveAsset();
+                }
+
+            }
+            GUILayout.EndVertical();
+
+        }
+        GUILayout.EndArea();
+
+        Rect secondRect = new Rect(firstRect.x,firstRect.yMax+ spaceBetweenRects,firstRect.width, buttonHeight * 2);
+        Rect secondRectBG = new Rect(secondRect.x - bgOffset.x / 2, secondRect.y - bgOffset.y / 2, secondRect.width + bgOffset.x, secondRect.height + bgOffset.y);
+
+        GUI.DrawTexture(secondRectBG, bg);
+        GUILayout.BeginArea(secondRect);
+        {
+            GUILayout.BeginVertical();
+            {
+                if (GUILayout.Button(GUIContent.none, skin.GetStyle("importtexture"), GUILayout.MaxWidth(buttonWidth), GUILayout.MaxHeight(buttonHeight))) {
+                    PIASession.Instance.LoadImageFromFile();
+                }
+                if (GUILayout.Button(GUIContent.none, skin.GetStyle("exporttexture"), GUILayout.MaxWidth(buttonWidth), GUILayout.MaxHeight(buttonHeight))) {
+                    PIAExportSettingsWindow.ShowWindow();
+                }
+
+            }
+            GUILayout.EndVertical();
+
+        }
+        GUILayout.EndArea();
+
+    }
 
 
     private void DrawGrid(Rect rect)
@@ -489,31 +686,31 @@ public class PIAEditorWindow : EditorWindow {
         if (grid.CellWidth <= 10 || grid.CellHeight <= 10)
             return;
 
-        for (float offsetX = 0; offsetX <= rect.width+1; offsetX += grid.CellWidth)
-        {
-            EditorGUI.DrawRect(new Rect(new Vector2(rect.x + offsetX, rect.y), new Vector2(1, rect.height)), Color.black);
-        }
-        for (float offsetY = 0; offsetY <= rect.height+1; offsetY += grid.CellHeight)
-        {
-            EditorGUI.DrawRect(new Rect(new Vector2(rect.x , rect.y + offsetY), new Vector2(rect.width, 1)), Color.black);
-
-        }
-        //Handles.BeginGUI();
+        //for (float offsetX = 0; offsetX <= rect.width+1; offsetX += grid.CellWidth)
         //{
-        //    Handles.color = Color.black;
-
-        //    for (float offsetX = 0; offsetX <= rect.width; offsetX += grid.CellWidth)
-        //    {
-        //        Handles.DrawLine(new Vector2(rect.x + offsetX, rect.y), new Vector2(rect.x + offsetX, rect.y + rect.height));
-        //    }
-        //    for (float offsetY = 0; offsetY <= rect.height; offsetY += grid.CellHeight)
-        //    {
-        //        Handles.DrawLine(new Vector2(rect.x, rect.y + offsetY), new Vector2(rect.x + rect.width, rect.y + +offsetY));
-
-        //    }
-        //    Handles.color = Color.white;
+        //    EditorGUI.DrawRect(new Rect(new Vector2(rect.x + offsetX, rect.y), new Vector2(1, rect.height)), Color.black);
         //}
-        //Handles.EndGUI();
+        //for (float offsetY = 0; offsetY <= rect.height+1; offsetY += grid.CellHeight)
+        //{
+        //    EditorGUI.DrawRect(new Rect(new Vector2(rect.x , rect.y + offsetY), new Vector2(rect.width, 1)), Color.black);
+
+        //}
+        Handles.BeginGUI();
+        {
+            Handles.color = Color.black;
+
+            for (float offsetX = 0; offsetX <= rect.width; offsetX += grid.CellWidth)
+            {
+                Handles.DrawLine(new Vector2(rect.x + offsetX, rect.y), new Vector2(rect.x + offsetX, rect.y + rect.height));
+            }
+            for (float offsetY = 0; offsetY <= rect.height; offsetY += grid.CellHeight)
+            {
+                Handles.DrawLine(new Vector2(rect.x, rect.y + offsetY), new Vector2(rect.x + rect.width, rect.y + +offsetY));
+
+            }
+            Handles.color = Color.white;
+        }
+        Handles.EndGUI();
     }
     private void DrawPixelCoordinates()
     {
@@ -622,7 +819,7 @@ public class PIAEditorWindow : EditorWindow {
             {
                 GUILayout.FlexibleSpace();
 
-                drawer.DrawerType = (PIADrawerType)GUILayout.SelectionGrid((int)drawer.DrawerType,
+                drawer.ToolType = (PIAToolType)GUILayout.SelectionGrid((int)drawer.ToolType,
                     icons, iconsPerLine, skin.GetStyle("editorbutton"),
                     GUILayout.MaxWidth(iconsWidth * iconsPerLine), GUILayout.MaxHeight(iconsWidth * icons.Length / 2));
                 GUILayout.FlexibleSpace();
@@ -849,63 +1046,5 @@ public class PIAEditorWindow : EditorWindow {
 
 
 
-    private class PIANewImageWindow: EditorWindow{
-
-        static PIANewImageWindow window;
-        int width = 16;
-        int height = 16;
-        
-        public static void ShowWindow() {
-           
-            window = GetWindow<PIANewImageWindow>();
-            window.maxSize = new Vector2(200, 200);
-            window.Show();
-
-        }
-
-        private void OnGUI()
-        {
-            width = EditorGUILayout.IntField("Width: ",width);
-            height = EditorGUILayout.IntField("Height: ", height);
-            if (GUILayout.Button("Create")) {
-                LoadNewAsset();
-            }
-        }
-        private void LoadNewAsset() {
-            PIASession.Instance.LoadNewAsset(width,height);
-            PIAEditorWindow.window.Repaint();
-            window.Close();
-        }
-    }
-
-    private class PIAColorPalette {
-
-        private static PIAColorPalette _instance;
-        public static PIAColorPalette Instance
-        {
-            get {
-                if (_instance == null)
-                    _instance = new PIAColorPalette();
-                return _instance;
-            }
-        }
-
-        private Dictionary<string, Color> palette;
-
-        public PIAColorPalette() {
-            palette = new Dictionary<string, Color>();
-        }
-
-        public void AddColor(string name, Color color) {
-            palette.Add(name, color);
-        }
-        public void RemoveColor(string name) {
-            palette.Remove(name);
-        }
-
-        public Color GetColor(string name) {
-            return palette[name];
-        }
-
-    }
+   
 }
