@@ -5,7 +5,8 @@ public enum PIAToolType {
     Erase,
     Rectangle,
     RectangleFilled,
-    Selection
+    Selection,
+    Dithering
 }
 
 public class PIADrawer{
@@ -132,7 +133,7 @@ public class PIADrawer{
         if (pixelCoordinate.x < 0 || pixelCoordinate.y < 0)
             return;
 
-        PIATexture helper = PIAEditorWindow.Instance.HelpToolTexture;
+        PIATexture helper = PIAEditorWindow.Instance.SelectionTexture;
         PIAFrame frame = PIASession.Instance.ImageData.CurrentFrame;
         int width = PIASession.Instance.ImageData.Width;
         int height = PIASession.Instance.ImageData.Height;
@@ -255,6 +256,31 @@ public class PIADrawer{
                 if (e.keyCode == KeyCode.Delete) {
                     ClearRect(frame.GetCurrentImage(), selectedRect);
                     helper.ClearTexture(true);
+                }
+
+                break;
+            case PIAToolType.Dithering:
+                if ((pixelCoordinate.x + pixelCoordinate.y) % 2 == 1)
+                {
+                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.red.r, Color.red.g, Color.red.b, 0.2f), false, true);
+                    return;
+                }
+
+                if (e.type == EventType.MouseDown || e.type == EventType.MouseDrag)
+                {
+                    if (e.button == 0)
+                    {
+                        frame.GetCurrentImage().Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, FirstColor);
+                    }
+                    if (e.button == 1)
+                    {
+                        frame.GetCurrentImage().Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, SecondColor);
+                    }
+                }
+                else
+                {
+                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.black.r, Color.black.g, Color.black.b, 0.2f), false, true);
+
                 }
 
                 break;

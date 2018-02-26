@@ -2,6 +2,9 @@
 using UnityEngine;
 using System.Collections.Generic;
 using Piacenti.EditorTools;
+using System;
+using System.Reflection;
+using System.Linq;
 public class ToolWindow : EditorWindow
   {
     private List<WindowSection> sections;
@@ -69,7 +72,22 @@ public class ToolWindow : EditorWindow
                 for (int i = 0; i < 5; i++)
                 {
                     GUILayout.Space(5);
-                    GUILayout.Button("Button" + i, GUILayout.Height(70), GUILayout.Width(buttonsSection.GetRect().width-10));
+                    if (GUILayout.Button("Button" + i, GUILayout.Height(70), GUILayout.Width(buttonsSection.GetRect().width - 10))) {
+                        string colorPresetPath = "Assets/Editor/test.colors";
+                        UnityEngine.Object presetObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(colorPresetPath);
+
+                        Type colorPreview = Type.GetType("UnityEditor.ColorPicker, UnityEditor");
+                        MethodInfo[] info = colorPreview.GetMethods();
+                        foreach (var item in info)
+                        {
+                            //Debug.Log(item.Name);
+                            if (item.Name == "Count")
+                                Debug.Log(item.Invoke(presetObject,null));
+                        }
+                        EditorWindow colorPickerWindow = EditorWindow.GetWindow(colorPreview);
+                        colorPickerWindow.Show();
+
+                    }
                 }
                 EditorGUILayout.EndScrollView();
 

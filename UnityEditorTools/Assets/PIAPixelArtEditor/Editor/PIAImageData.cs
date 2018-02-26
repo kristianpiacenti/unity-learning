@@ -87,6 +87,16 @@ public class PIAImageData : ScriptableObject {
             
         }
     }
+    public void MoveFrameUp(int currentIndex) {
+        PIAFrame tmp = frames[currentIndex-1];
+        frames[currentIndex - 1] = frames[currentIndex];
+        frames[currentIndex] = tmp;
+    }
+    public void MoveFrameDown(int currentIndex) {
+        PIAFrame tmp = frames[currentIndex + 1];
+        frames[currentIndex + 1] = frames[currentIndex];
+        frames[currentIndex] = tmp;
+    }
     #endregion
     
 }
