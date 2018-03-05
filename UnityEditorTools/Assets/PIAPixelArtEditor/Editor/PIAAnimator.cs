@@ -39,14 +39,22 @@ public class PIAAnimator{
 
     public void Update() {
 
+        // ANIMATOR TIMER
+
         timer += Time.deltaTime * Speed;
         if (timer >= 1)
         {
             timer = 0;
+
+            // next frame
             currentFrameInPreview = (currentFrameInPreview + 1) % PIASession.Instance.ImageData.Frames.Count;
         }
     }
+
     public PIAFrame GetFrameOrFirst() {
+        // get the current frame in animator
+        // if it doesn't exist returns the first frame (maybe it gets deleted?)
+
         PIAFrame output;
         imageData = PIASession.Instance.ImageData;
 

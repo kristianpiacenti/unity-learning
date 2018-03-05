@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 public class PIAInputArea {
+    // this is useful if we want to do input stuff in a specific area (rect)
 
     #region Static
 
@@ -28,17 +29,22 @@ public class PIAInputArea {
 
     #region Methods
 
+    // this needs to get called in OnGUI
     public void GUIUpdate(Rect area)
     {
+
         e = Event.current;
+
         if (!area.Contains(e.mousePosition))
             return;
+
         OnGUIUpdate(e);
 
     }
-    public void Update(Rect area, PIAEditorWindow window)
+
+    // this needs to get called in Update
+    public void Update(Rect area)
     {
-        window.Repaint();
         if (!area.Contains(e.mousePosition))
             return;
         OnUpdate(e);

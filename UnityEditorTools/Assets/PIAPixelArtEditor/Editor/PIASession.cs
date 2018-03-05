@@ -5,14 +5,9 @@ using System.Linq;
 using System.Collections.Generic;
 
 public class PIASession {
-    #region Fields
+    #region Static
 
-    private PIAImageData _imageData;
     private static PIASession _instance;
-
-    #endregion
-
-    #region Properties
 
     public static PIASession Instance
     {
@@ -25,7 +20,22 @@ public class PIASession {
             return _instance;
         }
     }
+
+    #endregion
+
+    #region Fields
+
+    private PIAImageData _imageData;
+
+    #endregion
+
+    #region Properties
+
+    // ask to save the document on exit
+    public bool IsDirty { get; set; }
     public PIAImageData ImageData { get { return _imageData; } set { _imageData = value; } }
+
+    // does it exist as an asset?
     private bool isNew
     {
         get
@@ -35,6 +45,8 @@ public class PIASession {
             return string.IsNullOrEmpty(path) ? true : false;
         }
     }
+
+    // project name = file name (bottom left label)
     public string ProjectName
     {
         get
@@ -44,6 +56,7 @@ public class PIASession {
             return string.IsNullOrEmpty(path) ? "NewImage" : path;
         }
     }
+
     #endregion
 
     #region Methods
@@ -51,8 +64,11 @@ public class PIASession {
     public Texture2D LoadAsset()
     {
         OpenAsset(ref _imageData);
+
+        // it's getting pulled from default execution
         if (ImageData.CurrentFrame == null)
             ImageData.Init(16,16);
+
         return ImageData.CurrentFrame.GetCurrentImage().Texture;
     }
     public PIASession()
@@ -61,20 +77,17 @@ public class PIASession {
     }
     public Texture2D LoadImageFromFile()
     {
-
+        // only PNG and JPG are supported
         string path = EditorUtility.OpenFilePanelWithFilters("Import Image", "", new string[] { "PNG", "png", "JPG", "jpg" });
-
-        //string path = EditorUtility.OpenFilePanel("Select Texture", "", "Image Files;*.jpg;*.png");
 
         if (string.IsNullOrEmpty(path))
             return null;
 
+        // the selected texture from file panel is hard pushed on the current frame texture
         Texture2D texture = new Texture2D(2, 2);
         texture.filterMode = FilterMode.Point;
         byte[] fileData = File.ReadAllBytes(path);
         texture.LoadImage(fileData);
-        //ImageData.Width = texture.width;
-        //ImageData.Height = texture.height;
         ImageData.CurrentFrame.GetCurrentImage().Texture = texture;
         return ImageData.CurrentFrame.GetCurrentImage().Texture;
     }
@@ -90,9 +103,11 @@ public class PIASession {
 
     public void ExportImage(Texture2D tex, string path)
     {
-        byte[] encodedBytes;
+        // --- JPG AND PNG ONLY SUPPORTED ----
+
         if (string.IsNullOrEmpty(path))
             return;
+        byte[] encodedBytes;
         string extension = Path.GetExtension(path);
         switch (extension)
         {
@@ -109,10 +124,12 @@ public class PIASession {
         File.WriteAllBytes(path, encodedBytes);
         AssetDatabase.Refresh();
 
+        // MODIFYING TEXTURE IMPORT SETTINGS
         TextureImporter importer = TextureImporter.GetAtPath(FileUtil.GetProjectRelativePath(path)) as TextureImporter;
         importer.textureType = TextureImporterType.Sprite;
         importer.filterMode = FilterMode.Point;
         importer.maxTextureSize = GetTextureImporterMaxSize(tex);
+        importer.textureCompression = TextureImporterCompression.Uncompressed;
         importer.SaveAndReimport();
 
         AssetDatabase.Refresh();
@@ -120,40 +137,16 @@ public class PIASession {
     }
     public string ExportImage(Texture2D tex)
     {
-        byte[] encodedBytes;
         string path = EditorUtility.SaveFilePanel("Export Image", "", ProjectName, "png");
-        if (string.IsNullOrEmpty(path))
-            return null;
-        string extension = Path.GetExtension(path);
-        switch (extension)
-        {
-            case ".png":
-                encodedBytes = tex.EncodeToPNG();
-                break;
-            case ".jpg":
-                encodedBytes = tex.EncodeToJPG();
-                break;
-            default:
-                encodedBytes = tex.EncodeToPNG();
-                break;
-        }
-        File.WriteAllBytes(path, encodedBytes);
-        AssetDatabase.Refresh();
-
-        TextureImporter importer = TextureImporter.GetAtPath(FileUtil.GetProjectRelativePath(path)) as TextureImporter;
-        importer.textureType = TextureImporterType.Sprite;
-        importer.filterMode = FilterMode.Point;
-        importer.maxTextureSize = GetTextureImporterMaxSize(tex);
-        importer.textureCompression = TextureImporterCompression.Uncompressed;
-        importer.SaveAndReimport();
-        AssetDatabase.Refresh();
+        ExportImage(tex, path);
         return path;
 
     }
     public void ExportAll() {
+
         string pathParent = EditorUtility.SaveFolderPanel("Choose Folder", FileUtil.GetProjectRelativePath("Assets"), ProjectName);
 
-
+        // exporting every frame on a selected folder
         for (int i = 0; i < ImageData.Frames.Count; i++)
         {
             string path = pathParent + "/" + ProjectName + i + ".png";
@@ -167,7 +160,10 @@ public class PIASession {
         Texture2D spriteSheet = PIASpriteSheet.GenerateSpriteSheet(ImageData.Frames.Count, ImageData.Width, ImageData.Height, ImageData.Frames.ToArray());
         string path = ExportImage(spriteSheet);
         PIASpriteSheet.Slice(spriteSheet, path, ImageData.Width, ImageData.Height);
+
+        // we need to hard select the asset in order to the built in SpriteEditorWindow to work
         Selection.activeObject = AssetDatabase.LoadAssetAtPath<Texture2D>(FileUtil.GetProjectRelativePath(path));
+        // little bit of reflection to open built in Sprite Editor Window 
         EditorWindow spriteEditorWindow = EditorWindow.GetWindow(typeof(EditorWindow).Assembly.GetTypes().Where(x => x.Name == "SpriteEditorWindow").FirstOrDefault());
         
     }
@@ -197,8 +193,9 @@ public class PIASession {
                 return;
             AssetDatabase.CreateAsset(ImageData, path);
         }
-        ImageData.CurrentFrame.GetCurrentImage().Save();
+        ImageData.Save();
         AssetDatabase.Refresh();
+        // this ask the user to save project on unity exit
         EditorUtility.SetDirty(_imageData);
 
     }
@@ -222,7 +219,6 @@ public class PIASession {
 
             int spriteSheetHeight = frameHeight * rows;
             spriteSheetHeight += spriteSheetHeight % frameHeight;
-            Debug.Log("Frames count: " + framesCount + " Spritesheet width: " + spriteSheetWidth + " Spritesheet height: " + spriteSheetHeight);
 
             spriteSheet = PIATexture.CreateBlank(spriteSheetWidth, spriteSheetHeight);
             int offsetX = 0;
@@ -256,6 +252,9 @@ public class PIASession {
         }
 
         public static void Slice(Texture2D tex,string path, int sliceWidth,int sliceHeight) {
+            // "slices" in the built in Sprite Editor Window are just SpriteMetaData s saved on an array
+            // we can set this array through TextureImporter.spritesheet
+
             TextureImporter importer = TextureImporter.GetAtPath(FileUtil.GetProjectRelativePath(path)) as TextureImporter;
             importer.isReadable = true;
             importer.spriteImportMode = SpriteImportMode.Multiple;

@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Linq;
+
+// easy way to cache all the needed editor textures
 public class PIATextureDatabase{
     private Texture2D[] database;
 

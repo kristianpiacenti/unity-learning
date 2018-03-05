@@ -10,9 +10,10 @@ public class PIAExportSettingsWindow : EditorWindow
 
     public static void ShowWindow()
     {
-
+        // INIT WINDOW
         window = GetWindow<PIAExportSettingsWindow>();
-        window.maxSize = new Vector2(400, 200);
+        window.maxSize = new Vector2(400, 25);
+        window.minSize = new Vector2(400, 24);
         window.Show();
 
     }

@@ -10,7 +10,7 @@ public class PIANewImageWindow : EditorWindow
 
     public static void ShowWindow()
     {
-
+        // INIT WINDOW
         window = GetWindow<PIANewImageWindow>();
         window.maxSize = new Vector2(200, 200);
         window.Show();
@@ -19,8 +19,10 @@ public class PIANewImageWindow : EditorWindow
 
     private void OnGUI()
     {
+        // we use always the same aspect ratio
         width = EditorGUILayout.IntField("Width: ", width);
-        height = EditorGUILayout.IntField("Height: ", height);
+        height = EditorGUILayout.IntField("Height: ", width);
+
         if (GUILayout.Button("Create"))
         {
             LoadNewAsset();
@@ -29,6 +31,10 @@ public class PIANewImageWindow : EditorWindow
     private void LoadNewAsset()
     {
         PIASession.Instance.LoadNewAsset(width, height);
+        
+        // when loading a new asset we want to reset the selection texture
+        PIAEditorWindow.Instance.SelectionTexture = new PIATexture();
+        PIAEditorWindow.Instance.SelectionTexture.Init(PIASession.Instance.ImageData.Width, PIASession.Instance.ImageData.Height, 0);
         PIAEditorWindow.window.Repaint();
         window.Close();
     }

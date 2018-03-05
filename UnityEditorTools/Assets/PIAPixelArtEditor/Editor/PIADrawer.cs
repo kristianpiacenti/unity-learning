@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using ProtoTurtle.BitmapDrawing;
 public enum PIAToolType {
     Paint,
     Erase,
@@ -102,8 +101,7 @@ public class PIADrawer{
     #endregion
 
     #region Fields
-
-    private float dragDistance;
+    
     private Vector2Int downPoint;
     private Vector2Int upPoint;
     private RectInt selectedRect;
@@ -123,6 +121,7 @@ public class PIADrawer{
 
     public PIADrawer()
     {
+        // INIT DRAWER
         ToolType = PIAToolType.Paint;
         FirstColor = Color.black;
         SecondColor = ClearColor;
@@ -130,13 +129,19 @@ public class PIADrawer{
 
     public void OnGUIExecute(Event e, Vector2Int pixelCoordinate)
     {
+        
+        // mouse is outside the grid
         if (pixelCoordinate.x < 0 || pixelCoordinate.y < 0)
             return;
 
+        // this is used to preview where we are going to draw
         PIATexture helper = PIAEditorWindow.Instance.SelectionTexture;
+
         PIAFrame frame = PIASession.Instance.ImageData.CurrentFrame;
         int width = PIASession.Instance.ImageData.Width;
         int height = PIASession.Instance.ImageData.Height;
+
+        // this could have been a much better class based state machine but I'm fucking lazy (maybe in PRO version?)
         switch (ToolType)
         {
             case PIAToolType.Paint:
@@ -153,7 +158,7 @@ public class PIADrawer{
                     }
                 }
                 else {
-                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.black.r, Color.black.g, Color.black.b, 0.2f),false,true);
+                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.black.r, Color.black.g, Color.black.b, 0.2f),false,true, false);
 
                 }
 
@@ -164,7 +169,7 @@ public class PIADrawer{
                     frame.GetCurrentImage().Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, ClearColor);
                 }
                 else {
-                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.white.r, Color.white.g, Color.white.b, 0.5f), false,true);
+                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.white.r, Color.white.g, Color.white.b, 0.5f), false,true,false);
                 }
                 break;
             case PIAToolType.Rectangle:
@@ -262,7 +267,7 @@ public class PIADrawer{
             case PIAToolType.Dithering:
                 if ((pixelCoordinate.x + pixelCoordinate.y) % 2 == 1)
                 {
-                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.red.r, Color.red.g, Color.red.b, 0.2f), false, true);
+                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.red.r, Color.red.g, Color.red.b, 0.2f), false, true, false);
                     return;
                 }
 
@@ -279,7 +284,7 @@ public class PIADrawer{
                 }
                 else
                 {
-                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.black.r, Color.black.g, Color.black.b, 0.2f), false, true);
+                    helper.Paint(pixelCoordinate.x, height - pixelCoordinate.y - 1, new Color(Color.black.r, Color.black.g, Color.black.b, 0.2f), false, true, false);
 
                 }
 
@@ -288,10 +293,7 @@ public class PIADrawer{
 
 
     }
-    public void DrawCurrentPixelBox(float cellWidth)
-    {
-        GUI.Box(new Rect(CurrentMousePosition, Vector2.one * cellWidth), PIATextureDatabase.Instance.GetTexture("brush"));
-    }
+   
 
     #endregion
     
